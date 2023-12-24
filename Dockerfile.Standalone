@@ -12,7 +12,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Upgrade apt packages and install required dependencies
 RUN apt update && \
     apt upgrade -y && \
     apt install -y \
@@ -25,27 +24,31 @@ RUN apt update && \
     apt clean -y
 
 WORKDIR /workspace
+
+# Clone the Git repository and checkout the specified commit
 RUN git clone https://github.com/oobabooga/text-generation-webui && \
     cd text-generation-webui && \
     git checkout ${OOBABOOGA_COMMIT} && \
-    pip3 install --no-cache-dir torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
-    pip3 install --no-cache-dir xformers && \
-    pip3 install -r requirements.txt && \
-    bash -c 'for req in extensions/*/requirements.txt ; do pip3 install -r "$req" ; done' && \
+    pip3 install -U torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
+    pip3 install -U xformers && \
+    pip3 install -U -r requirements.txt && \
+    for req in extensions/*/requirements.txt ; do pip3 install -U -r "$req" ; done && \
     mkdir -p repositories && \
     cd repositories && \
     git clone https://github.com/turboderp/exllama
 
 # Fetch the model
 COPY download_model.py fetch_model.py /
-RUN pip3 install huggingface_hub runpod && \
-    /fetch_model.py ${MODEL} /workspace/text-generation-webui/models
+RUN pip3 install -U huggingface_hub runpod && \
+    /fetch_model.py ${MODEL1} /workspace/text-generation-webui/models && \
+    /fetch_model.py ${MODEL2} /workspace/text-generation-webui/models && \
+    /fetch_model.py ${MODEL3} /workspace/text-generation-webui/models && \
+    /fetch_model.py ${MODEL4} /workspace/text-generation-webui/models
 
-# Docker container start script
-COPY start_standalone.sh /start.sh
+COPY start_standalone.sh /
 COPY rp_handler.py /
 COPY schemas /schemas
 
-# Start the container
-RUN chmod +x /start.sh
-CMD /start.sh
+RUN chmod +x /start_standalone.sh
+
+CMD ["/start_standalone.sh"]

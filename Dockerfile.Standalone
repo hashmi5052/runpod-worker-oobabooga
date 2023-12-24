@@ -1,19 +1,15 @@
-# Use the official Nvidia CUDA image with cuDNN and Ubuntu 22.04 as the base image
 FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
 
-# Set build-time arguments
 ARG OOBABOOGA_COMMIT=2af7e382b121f2eae16dd1f7ace621d31028b319
 ARG MODEL1="TheBloke/Synthia-34B-v1.2-GPTQ"
 ARG MODEL2="TheBloke/Wizard-Vicuna-30B-Uncensored-GPTQ"
 ARG MODEL3="ehartford/WizardLM-33B-V1.0-Uncensored"
 ARG MODEL4="cognitivecomputations/dolphin-2.1-mistral-7b"
 
-# Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_PREFER_BINARY=1 \
     PYTHONUNBUFFERED=1
 
-# Set the default shell for the following RUN commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Upgrade apt packages and install required dependencies
@@ -28,38 +24,28 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/* && \
     apt clean -y
 
-# Set the working directory
 WORKDIR /workspace
-
-# Clone the Git repository and checkout the specified commit
 RUN git clone https://github.com/oobabooga/text-generation-webui && \
     cd text-generation-webui && \
     git checkout ${OOBABOOGA_COMMIT} && \
-    pip3 install -U torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
-    pip3 install -U xformers && \
-    pip3 install -U -r requirements.txt && \
-    bash -c 'for req in extensions/*/requirements.txt ; do pip3 install -U -r "$req" ; done' && \
+    pip3 install --no-cache-dir torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
+    pip3 install --no-cache-dir xformers && \
+    pip3 install -r requirements.txt && \
+    bash -c 'for req in extensions/*/requirements.txt ; do pip3 install -r "$req" ; done' && \
     mkdir -p repositories && \
     cd repositories && \
     git clone https://github.com/turboderp/exllama
 
-# Copy files for fetching the model
+# Fetch the model
 COPY download_model.py fetch_model.py /
+RUN pip3 install huggingface_hub runpod && \
+    /fetch_model.py ${MODEL} /workspace/text-generation-webui/models
 
-# Install required Python packages for fetching the model
-RUN pip3 install -U huggingface_hub runpod && \
-    /fetch_model.py ${MODEL1} /workspace/text-generation-webui/models && \
-    /fetch_model.py ${MODEL2} /workspace/text-generation-webui/models && \
-    /fetch_model.py ${MODEL3} /workspace/text-generation-webui/models && \
-    /fetch_model.py ${MODEL4} /workspace/text-generation-webui/models
-
-# Copy files for container start
-COPY start_standalone.sh /
+# Docker container start script
+COPY start_standalone.sh /start.sh
 COPY rp_handler.py /
 COPY schemas /schemas
 
-# Set permissions for the start script
-RUN chmod +x /start_standalone.sh
-
-# Define the default command to start the container
-CMD ["/start_standalone.sh"]
+# Start the container
+RUN chmod +x /start.sh
+CMD /start.sh

@@ -1,10 +1,9 @@
 FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
 
 ARG OOBABOOGA_COMMIT=2af7e382b121f2eae16dd1f7ace621d31028b319
-ARG MODEL1="TheBloke/Synthia-34B-v1.2-GPTQ"
-ARG MODEL2="TheBloke/Wizard-Vicuna-30B-Uncensored-GPTQ"
-ARG MODEL3="ehartford/WizardLM-33B-V1.0-Uncensored"
-ARG MODEL4="cognitivecomputations/dolphin-2.1-mistral-7b"
+ARG MODEL1="TheBloke/Wizard-Vicuna-30B-Uncensored-GPTQ"
+ARG MODEL2="ehartford/WizardLM-33B-V1.0-Uncensored"
+ARG MODEL3="cognitivecomputations/dolphin-2.1-mistral-7b"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_PREFER_BINARY=1 \

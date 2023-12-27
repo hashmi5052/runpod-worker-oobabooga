@@ -41,7 +41,7 @@ COPY download_model.py fetch_model.py /
 RUN pip3 install -U huggingface_hub runpod && \
     /fetch_model.py ${MODEL1} /workspace/text-generation-webui/models && \
     /fetch_model.py ${MODEL2} /workspace/text-generation-webui/models && \
-    /fetch_model.py ${MODEL3} /workspace/text-generation-webui/models && \
+    /fetch_model.py ${MODEL3} /workspace/text-generation-webui/models
     
 COPY start_standalone.sh /
 COPY rp_handler.py /

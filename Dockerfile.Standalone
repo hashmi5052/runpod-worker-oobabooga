@@ -1,9 +1,8 @@
 FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
 
 ARG OOBABOOGA_COMMIT=2af7e382b121f2eae16dd1f7ace621d31028b319
-ARG MODEL1="TheBloke/Wizard-Vicuna-30B-Uncensored-GPTQ"
-ARG MODEL2="ehartford/WizardLM-33B-V1.0-Uncensored"
-ARG MODEL3="cognitivecomputations/dolphin-2.1-mistral-7b"
+ARG MODEL="TheBloke/Wizard-Vicuna-30B-Uncensored-GPTQ"
+
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_PREFER_BINARY=1 \
@@ -39,9 +38,7 @@ RUN git clone https://github.com/oobabooga/text-generation-webui && \
 # Fetch the model
 COPY download_model.py fetch_model.py /
 RUN pip3 install -U huggingface_hub runpod && \
-    /fetch_model.py ${MODEL1} /workspace/text-generation-webui/models && \
-    /fetch_model.py ${MODEL2} /workspace/text-generation-webui/models && \
-    /fetch_model.py ${MODEL3} /workspace/text-generation-webui/models
+    /fetch_model.py ${MODEL} /workspace/text-generation-webui/models 
     
 COPY start_standalone.sh /
 COPY rp_handler.py /
